@@ -71,14 +71,16 @@ int main() {
         char buffer[1024] = {0};
         read(client_socket, buffer, 1024);
         std::string header(buffer);
-        // Ignore favicon request
+        // Ignore favicon request (for now)
         if (header.find("GET /favicon.ico") != std::string::npos) {
             close(client_socket);
             continue;
         }
         std::cout << "\033[90m" << buffer << "\033[0m" << std::endl;
 
-        // ext function to get method (needed below)
+        /*
+         - ext function to get method (needed below)
+        */
 
         // get requested file's name
         std::string reqFile;
@@ -96,6 +98,7 @@ int main() {
         std::stringstream resHeader;
         std::string resBody;
 
+        // Write appropriate header
         if (!reqFile.empty()) {
             std::string filename = SPATH + reqFile;
             resBody = get_fileContent(filename);
@@ -113,27 +116,19 @@ int main() {
             resBody = get_fileContent("./website/public/400.html");
         }
 
-        // call to ext function for request parsing (use class ?)
-        // ...
-
-        // Write HTTP response (header) (call to ext function to make header depending on request's status (using class might be usefull))
-        // ...
-
-        // Append requested file or img to the header (might be usefull to use if statement to parse cases)
+        /*
+         - Call to ext function for request parsing (use class ?
+         - Write HTTP response (header) (call to ext function to make header depending on request's status (using class might be usefull))
+         - Append requested file or img to the header (might be usefull to use if statement to parse cases)
+        */
 
         std::stringstream ss;
-        // ss << "HTTP/1.1 200 OK\r\n"
-        //    << "Content-Type: text/html\r\n"
-        //    << "\r\n"
-        //    << "<html><body><h1>Website</h1></body></html>";
         ss << resHeader.str();
         ss << resBody;
         std::string response = ss.str();
 
-        // Send HTTP response
+        // Send HTTP response && close connection
         send(client_socket, response.c_str(), response.length(), 0);
-
-        // Close connection
         close(client_socket);
     }
 
