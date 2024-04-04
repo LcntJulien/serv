@@ -86,7 +86,7 @@ int main() {
         std::string reqFile;
         size_t pos = header.find("GET ");
         if (pos != std::string::npos) {
-            size_t end_pos = header.find(" HTTP/1.1", pos + 4);
+            size_t end_pos = header.find(" HTTP/1.1", pos + 4); 
             if (end_pos != std::string::npos) {
                 reqFile = header.substr(pos + 5, end_pos - pos - 5);
             }
@@ -126,6 +126,8 @@ int main() {
         ss << resHeader.str();
         ss << resBody;
         std::string response = ss.str();
+
+        std::cout << resHeader.str() << std::endl;
 
         // Send HTTP response && close connection
         send(client_socket, response.c_str(), response.length(), 0);
