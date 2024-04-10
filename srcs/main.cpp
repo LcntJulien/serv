@@ -7,7 +7,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <poll.h>
-#include <cstdlib> // For popen
+#include <cstdlib>
 
 const std::string SPATH = "./website/";
 const std::string CGIPATH = "./cgi-bin/";
@@ -140,6 +140,8 @@ int main() {
                         continue;
                     }
 
+                    std::cout << "\033[34m" << request << "\033[0m" << std::endl;
+
                     /*
                     - ext function to get method (needed below)
                     */
@@ -156,9 +158,15 @@ int main() {
                         if (reqFile.empty())
                             reqFile = "index.html";
                     } else if (post_pos != std::string::npos) {
-                        // Handle POST request
-                        // You can extract the requested file name or any other relevant data from the request body
+                        // Extract the requested file name from the POST request
+                        size_t start_pos = post_pos + strlen("POST ");
+                        size_t end_pos = request.find(" HTTP/1.1", start_pos);
+                        if (end_pos != std::string::npos) {
+                            reqFile = request.substr(start_pos, end_pos - start_pos);
+                        }
                     }
+
+                    std::cout << "\033[33m" << reqFile << "\033[0m" << std::endl;
 
                     // Load requested file
                     std::stringstream resHeader;
