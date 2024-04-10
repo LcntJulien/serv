@@ -1,145 +1,3 @@
-// // #include "../include/Request.hpp"
-// #include <iostream>
-// #include <sstream>
-// #include <fstream>
-// #include <string>
-// #include <cstring>
-// #include <unistd.h>
-// #include <sys/socket.h>
-// #include <netinet/in.h>
-
-// const int PORT = 8080;
-// const std::string SPATH = "./website/";
-
-// std::string get_fileContent(const std::string& filename) {
-//     std::ifstream in(filename, std::ios::in | std::ios::binary);
-//     if (in) {
-//         std::ostringstream content;
-//         content << in.rdbuf();
-//         in.close();
-//         return content.str();
-//     }
-//     return "";
-// }
-
-// std::string get_contentType(const std::string& filename) {
-//     if (filename.find(".html") != std::string::npos) {
-//         return "text/html";
-//     } else if (filename.find(".css") != std::string::npos) {
-//         return "text/css";
-//     } else if (filename.find(".js") != std::string::npos) {
-//         return "application/javascript";
-//     } else {
-//         return "application/octet-stream"; // Default to binary data if content type is unknown
-//     }
-// }
-
-// int main() {
-//     // Create socket
-//     int serv_socket = socket(AF_INET, SOCK_STREAM, 0);
-//     if (serv_socket < 0) {
-//         std::cerr << "Error creating socket\n";
-//         return 1;
-//     }
-
-//     // Bind socket to port
-//     sockaddr_in address;
-//     address.sin_family = AF_INET;
-//     address.sin_addr.s_addr = INADDR_ANY;
-//     address.sin_port = htons(PORT);
-//     if (bind(serv_socket, (sockaddr*)&address, sizeof(address)) < 0) {
-//         std::cerr << "Error binding to port\n";
-//         return 1;
-//     }
-
-//     // Listen for connections
-//     if (listen(serv_socket, 10) < 0) {
-//         std::cerr << "Error listening\n";
-//         return 1;
-//     }
-
-//     std::cout << "\033[1m\033[90mServer listening on port \033[32m" << PORT << "\033[90m\033[0m" << std::endl << std::endl;
-//     while (true) {
-//         // Accept incoming connection
-//         int client_socket = accept(serv_socket, nullptr, nullptr);
-//         if (client_socket < 0) {
-//             std::cerr << "Error accepting connection\n";
-//             continue;
-//         }
-
-//         // Read HTTP request
-//         char buffer[1024] = {0};
-//         read(client_socket, buffer, 1024);
-//         std::string header(buffer);
-//         // Ignore favicon request (for now)
-//         if (header.find("GET /favicon.ico") != std::string::npos) {
-//             close(client_socket);
-//             continue;
-//         }
-//         std::cout << "\033[90m" << buffer << "\033[0m" << std::endl;
-
-//         /*
-//          - ext function to get method (needed below)
-//         */
-
-//         // get requested file's name
-//         std::string reqFile;
-//         size_t pos = header.find("GET ");
-//         if (pos != std::string::npos) {
-//             size_t end_pos = header.find(" HTTP/1.1", pos + 4); 
-//             if (end_pos != std::string::npos) {
-//                 reqFile = header.substr(pos + 5, end_pos - pos - 5);
-//             }
-//             if (reqFile.empty())
-//                 reqFile = "index.html";
-//         }
-
-//         // Load requested file
-//         std::stringstream resHeader;
-//         std::string resBody;
-
-//         // Write appropriate header
-//         if (!reqFile.empty()) {
-//             std::string filename = SPATH + reqFile;
-//             resBody = get_fileContent(filename);
-//             if (!resBody.empty()) {
-//                 resHeader << "HTTP/1.1 200 OK\r\n";
-//                 resHeader << "Content-Type: " + get_contentType(filename) + "\r\n";
-//                 resHeader << "Content-Length: " + std::to_string(resBody.size()) + "\r\n";
-//                 resHeader << "\r\n";
-//             } else {
-//                 resHeader << "HTTP/1.1 404 Not Found\r\n\r\n";
-//                 resBody = get_fileContent("./website/status/404.html");
-//             }
-//         } else {
-//             resHeader << "HTTP/1.1 400 Bad Request\r\n\r\n";
-//             resBody = get_fileContent("./website/status/400.html");
-//         }
-
-//         /*
-//          - Call to ext function for request parsing (use class ?
-//          - Write HTTP response (header) (call to ext function to make header depending on request's status (using class might be usefull))
-//          - Append requested file or img to the header (might be usefull to use if statement to parse cases)
-//         */
-
-//         std::stringstream ss;
-//         ss << resHeader.str();
-//         ss << resBody;
-//         std::string response = ss.str();
-
-//         std::cout << resHeader.str() << std::endl;
-
-//         // Send HTTP response && close connection
-//         send(client_socket, response.c_str(), response.length(), 0);
-//         close(client_socket);
-//     }
-
-//     return 0;
-// }
-
-
-// ***********************************************************************************
-
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -148,9 +6,11 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <poll.h> // Include for poll
+#include <poll.h>
+#include <cstdlib> // For popen
 
 const std::string SPATH = "./website/";
+const std::string CGIPATH = "./cgi-bin/";
 const int MAX_CLIENTS = 10;
 const int PORT = 8080;
 
@@ -175,6 +35,29 @@ std::string get_contentType(const std::string& filename) {
     } else {
         return "application/octet-stream"; // Default to binary data if content type is unknown
     }
+}
+
+// Function to execute CGI script and capture its output
+std::string execute_cgi(const std::string& script_name) {
+    std::string command = CGIPATH + script_name;
+    FILE* pipe = popen(command.c_str(), "r");
+    if (!pipe) {
+        return "Error executing CGI script";
+    }
+
+    char buffer[1024];
+    std::string result;
+    while (fgets(buffer, sizeof(buffer), pipe) != NULL) {
+        result += buffer;
+    }
+    pclose(pipe);
+
+    return result;
+}
+
+// Function to handle CGI requests
+std::string handle_cgi_request(const std::string& script_name) {
+    return execute_cgi(script_name);
 }
 
 int main() {
@@ -250,33 +133,58 @@ int main() {
                     }
                     nfds--; // Decrement the number of file descriptors
                 } else {
+                    // Avoid favicon requests
                     std::string request(buffer);
                     if (request.find("GET /favicon.ico") != std::string::npos) {
                         close(fds[i].fd);
                         continue;
                     }
+
                     /*
                     - ext function to get method (needed below)
                     */
 
                     // get requested file's name
                     std::string reqFile;
-                    size_t pos = request.find("GET ");
-                    if (pos != std::string::npos) {
-                        size_t end_pos = request.find(" HTTP/1.1", pos + 4); 
+                    size_t get_pos = request.find("GET ");
+                    size_t post_pos = request.find("POST ");
+                    if (get_pos != std::string::npos) {
+                        size_t end_pos = request.find(" HTTP/1.1", get_pos + 4); 
                         if (end_pos != std::string::npos) {
-                            reqFile = request.substr(pos + 5, end_pos - pos - 5);
+                            reqFile = request.substr(get_pos + 5, end_pos - get_pos - 5);
                         }
                         if (reqFile.empty())
                             reqFile = "index.html";
+                    } else if (post_pos != std::string::npos) {
+                        // Handle POST request
+                        // You can extract the requested file name or any other relevant data from the request body
                     }
 
                     // Load requested file
                     std::stringstream resHeader;
                     std::string resBody;
 
-                    // Write appropriate header
+                    // Write appropriate response
                     if (!reqFile.empty()) {
+                        // Check if the requested file is a CGI script
+                        size_t dotPos = reqFile.find_last_of(".");
+                        if (dotPos != std::string::npos) {
+                            std::string extension = reqFile.substr(dotPos);
+                            if (extension == ".cgi") {
+                                // Handle CGI script request
+                                std::string cgi_response = handle_cgi_request(reqFile);
+                                if (!cgi_response.empty()) {
+                                    // Send CGI response to client
+                                    send(fds[i].fd, cgi_response.c_str(), cgi_response.length(), 0);
+                                    continue; // Skip processing static file requests
+                                }
+                                else {
+                                    resHeader << "HTTP/1.1 404 Not Found\r\n\r\n";
+                                    resBody = get_fileContent("./website/status/404.html");
+                                    break;
+                                }
+                            }
+                        }
                         std::string filename = SPATH + reqFile;
                         resBody = get_fileContent(filename);
                         if (!resBody.empty()) {
@@ -299,22 +207,22 @@ int main() {
                     - Append requested file or img to the header (might be usefull to use if statement to parse cases)
                     */
 
+                    // formate response to send it
                     std::stringstream ss;
                     ss << resHeader.str();
                     ss << resBody;
                     std::string response = ss.str();
 
+                    // display response's header
                     std::cout << resHeader.str() << std::endl;
 
-                    // Send HTTP response && close connection
+                    // Send HTTP response
                     send(fds[i].fd, response.c_str(), response.length(), 0);
                 }
             }
         }
     }
-
     // Close server socket
     close(serv_socket);
-
     return 0;
 }
