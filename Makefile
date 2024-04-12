@@ -7,7 +7,7 @@ BLUE		= \033[34m
 BOLD		= \033[1m
 RESET   	= \033[0m
 
-NAME		= Webserv
+NAME		= webserv
 
 CXX			= c++
 CXXFLAGS	= -Wall -Wextra -Werror -std=c++98
