@@ -7,6 +7,7 @@
 #include <string>
 #include <cstring>
 #include <cstdlib>
+#include <vector>
 #include <poll.h>
 #include <unistd.h>
 #include <sys/socket.h>
@@ -25,24 +26,25 @@ const int MAX_CLIENTS = 10;
 const std::string WEBSITE_PATH = "./docs/";
 const std::string CGI_PATH = "./cgi-bin/";
 
-// class Webserv
-// {
-// private:
-//     const int           port;
-//     const int           max_clients;
-//     const std::string   ws_path;
-//     const std::string   cgi_path;
-// public:
-//     Webserv();
-//     Webserv(const Webserv &src);
-//     ~Webserv();
+class Webserv
+{
+private:
+    // std::vector<int>    ports;
+    const int           port;
+    const int           max_clients;
+    const std::string   ws_path;
+    const std::string   cgi_path;
+public:
+    Webserv();
+    Webserv(const Webserv &src);
+    ~Webserv();
 
-//     Webserv &operator=(const Webserv &rhs);
+    Webserv &operator=(const Webserv &rhs);
 
-//     class Excep : public std::exception {
-//         public: virtual const char *what() const throw();
-//     };
-// };
+    class Excep : public std::exception {
+        public: virtual const char *what() const throw();
+    };
+};
 
 template<typename T>
 void    printMsg(T msg, std::string color, int endl) {
