@@ -24,6 +24,7 @@
     * Tout les champs existants dans un objet Location précisés dans l'objet Server auquel il appartient priment sur la valeur indiquée dans l'objet Location
     * Les champs non indiqués (NN) peuvent êtres nulls (non précisés dans le fichier de conf) mais certains doivent être assignés à une valeur par defaut dans ce cas (website_path, cgi_path, index...)
     * Souvent un block Location est utilisé pour la conf du dossier `cgi-bin`, d'où le fait qu'il-y-ait les champs `cgi-path` et `cgi-ext` dans la classe
+    * J'ai pas précisé la nature des champs des classes (private, public) mais tu les trouvera toutes propres dans le dossier include d'ici peu !
 */
 
 // La classe core: correspond au scope de base du programe et qui contient les données non specifialbles
