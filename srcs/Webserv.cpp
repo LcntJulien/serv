@@ -1,21 +1,21 @@
 #include "../include/Webserv.hpp"
 
-// Webserv::Webserv() {
-// }
+Webserv::Webserv() {
+}
 
-// Webserv::Webserv(const Webserv &src) {
-// }
+Webserv::Webserv(const Webserv &src) {
+}
 
-// Webserv::~Webserv() {
-// }
+Webserv::~Webserv() {
+}
 
-// Webserv &Webserv::operator=(const Webserv &rhs) {
+Webserv &Webserv::operator=(const Webserv &rhs) {
 
-// }
+}
 
-// const char *Webserv::Excep::what() const throw() {
-//     return ("");
-// }
+const char *Webserv::Excep::what() const throw() {
+    return ("");
+}
 
 std::string get_fileContent(const std::string& filename) {
     std::ifstream in(filename, std::ios::in | std::ios::binary);

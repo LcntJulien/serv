@@ -29,11 +29,12 @@ const std::string CGI_PATH = "./cgi-bin/";
 class Webserv
 {
 private:
-    // std::vector<int>    ports;
-    const int           port;
-    const int           max_clients;
-    const std::string   ws_path;
-    const std::string   cgi_path;
+    const int           _max_clients = 10;
+    std::vector<int>    _serv_sockets;
+    std::vector<int>    _ports;
+    std::string         _status_path;
+    std::string         _cgipath;
+    std::string         _wpath;
 public:
     Webserv();
     Webserv(const Webserv &src);
