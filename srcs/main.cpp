@@ -6,11 +6,13 @@
 /*   By: jlecorne <jlecorne@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/12 16:37:10 by jlecorne          #+#    #+#             */
-/*   Updated: 2024/04/13 14:53:31 by jlecorne         ###   ########.fr       */
+/*   Updated: 2024/04/13 21:05:46 by jlecorne         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../include/Webserv.hpp"
+#include "../include/Core.hpp"
+#include "../include/Server.hpp"
+#include "../include/Location.hpp"
 
 int webserv() {
     // Create socket

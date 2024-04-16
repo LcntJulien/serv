@@ -1,19 +1,31 @@
-#include "../include/Webserv.hpp"
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Core.cpp                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jlecorne <jlecorne@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/04/13 20:51:48 by jlecorne          #+#    #+#             */
+/*   Updated: 2024/04/13 21:00:10 by jlecorne         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-Webserv::Webserv() {
+#include "../include/Core.hpp"
+
+Core::Core() {
 }
 
-Webserv::Webserv(const Webserv &src) {
+Core::Core(const Core &src) {
 }
 
-Webserv::~Webserv() {
+Core::~Core() {
 }
 
-Webserv &Webserv::operator=(const Webserv &rhs) {
+Core &Core::operator=(const Core &rhs) {
 
 }
 
-const char *Webserv::Excep::what() const throw() {
+const char *Core::Excep::what() const throw() {
     return ("");
 }
 
