@@ -6,18 +6,19 @@
 /*   By: jlecorne <jlecorne@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/13 20:50:08 by jlecorne          #+#    #+#             */
-/*   Updated: 2024/04/13 21:25:20 by jlecorne         ###   ########.fr       */
+/*   Updated: 2024/04/16 18:18:18 by jlecorne         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef LOCATION_HPP
 # define LOCATION_HPP
 
-#include "Server.hpp"
+#include "ABlock.hpp"
 
-class Location : public Server
+class Location : public ABlock
 {
 private:
+    std::string _path;
 public:
     Location();
     Location(const Location &src);

@@ -6,7 +6,7 @@
 /*   By: jlecorne <jlecorne@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/13 20:52:00 by jlecorne          #+#    #+#             */
-/*   Updated: 2024/04/13 21:29:25 by jlecorne         ###   ########.fr       */
+/*   Updated: 2024/04/16 19:37:44 by jlecorne         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,25 +29,27 @@
 #include <cstring>
 #include <cstdlib>
 #include <vector>
+#include <map>
 #include <poll.h>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-// TMP
+#include "Server.hpp"
+
 const int PORT = 8080;
 const int MAX_CLIENTS = 10;
 const std::string WEBSITE_PATH = "./docs/";
 const std::string CGI_PATH = "./cgi-bin/";
 
-class Server;
-
 class Core
 {
 private:
+    std::vector<int>    _ports;
     std::vector<int>    _sockets;
+    std::map<int, int>  _psocket;
     std::vector<Server> _clusters;
-    const int           _max_clients = 10;
+    int                 _max_clients;
 public:
     Core();
     Core(const Core &src);
@@ -65,5 +67,9 @@ void    printMsg(T msg, std::string color, int endl) {
     for (int i = 0; i < endl; i++)
         std::cout << std::endl;
 }
+
+std::string handle_cgi_request(const std::string& script_name);
+std::string get_fileContent(const std::string& filename);
+std::string get_contentType(const std::string& filename);
 
 #endif

@@ -6,26 +6,29 @@
 /*   By: jlecorne <jlecorne@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/13 20:51:48 by jlecorne          #+#    #+#             */
-/*   Updated: 2024/04/13 21:00:10 by jlecorne         ###   ########.fr       */
+/*   Updated: 2024/04/16 18:41:32 by jlecorne         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/Core.hpp"
 
-Core::Core() {
+Core::Core() : _max_clients(10) {
+    (void)this->_max_clients;
 }
 
-Core::Core(const Core &src) {
+Core::Core(const Core &src) : _max_clients(10) {
+    (void)src;
 }
 
 Core::~Core() {
 }
 
 Core &Core::operator=(const Core &rhs) {
-
+    (void)rhs;
+    return *this;
 }
 
-const char *Core::Excep::what() const throw() {
+const char *Core::Core_excep::what() const throw() {
     return ("");
 }
 

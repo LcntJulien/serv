@@ -1,23 +1,6 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: jlecorne <jlecorne@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/04/12 16:37:10 by jlecorne          #+#    #+#             */
-/*   Updated: 2024/04/16 18:44:18 by jlecorne         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "../include/Core.hpp"
 #include "../include/Server.hpp"
 #include "../include/Location.hpp"
-
-// const std::string SPATH = "./website/";
-// const std::string CGI_PATH = "./cgi-bin/";
-// const int MAX_CLIENTS = 10;
-// const std::vector<int> PORTS = {8000, 8001, 8002};
 
 int webserv() {
     // Create socket
@@ -200,10 +183,10 @@ int webserv() {
 
 int main(int ac, char **av) {
     (void)av;
-    if (ac /*== 2*/)
+    if (ac == 2)
     {
         try {
-            webserv();
+            ;
         }
         catch (std::exception &e) {
             std::cerr << e.what() << std::endl;

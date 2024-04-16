@@ -6,18 +6,20 @@
 /*   By: jlecorne <jlecorne@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/13 20:50:06 by jlecorne          #+#    #+#             */
-/*   Updated: 2024/04/13 21:25:17 by jlecorne         ###   ########.fr       */
+/*   Updated: 2024/04/16 18:28:43 by jlecorne         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
-#include "Core.hpp"
+#include <iostream>
+#include <vector>
 
-class Location;
+#include "ABlock.hpp"
+#include "Location.hpp"
 
-class Server
+class Server : public ABlock
 {
 private:
     std::vector<int>            _ports;
@@ -26,14 +28,14 @@ private:
     std::string                 _serv_name;
     std::string                 _err_path;
     long                        _max_bsize;
-protected:
-    std::vector<std::string>    _methods;
-    std::vector<std::string>    _cgi_ext;
-    std::string                 _root;
-    std::string                 _index;
-    std::string                 _ret_path;
-    std::string                 _cgi_path;
-    bool                        _autoindex;
+// protected:
+//     std::vector<std::string>    _methods;
+//     std::vector<std::string>    _cgi_ext;
+//     std::string                 _root;
+//     std::string                 _index;
+//     std::string                 _ret_path;
+//     std::string                 _cgi_path;
+//     bool                        _autoindex;
 public:
     Server();
     Server(const Server &src);

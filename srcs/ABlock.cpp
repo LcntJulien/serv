@@ -1,32 +1,24 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Location.cpp                                       :+:      :+:    :+:   */
+/*   ABlock.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jlecorne <jlecorne@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/04/13 21:18:59 by jlecorne          #+#    #+#             */
-/*   Updated: 2024/04/16 18:31:17 by jlecorne         ###   ########.fr       */
+/*   Created: 2024/04/16 18:16:51 by jlecorne          #+#    #+#             */
+/*   Updated: 2024/04/16 18:30:59 by jlecorne         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../include/Location.hpp"
+#include "../include/ABlock.hpp"
 
-Location::Location() {
-}
+ABlock::ABlock() {}
 
-Location::Location(const Location &src) {
-    (void)src;
-}
+ABlock::ABlock(const ABlock &src) {(void)src;}
 
-Location::~Location() {
-}
+ABlock::~ABlock() {}
 
-Location    &Location::operator=(const Location &rhs) {
+ABlock  &ABlock::operator=(const ABlock &rhs) {
     (void)rhs;
     return *this;
-}
-
-const char *Location::Loca_excep::what() const throw() {
-    return ("");
 }
