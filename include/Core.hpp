@@ -6,7 +6,7 @@
 /*   By: jlecorne <jlecorne@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/13 20:52:00 by jlecorne          #+#    #+#             */
-/*   Updated: 2024/04/16 19:37:44 by jlecorne         ###   ########.fr       */
+/*   Updated: 2024/04/19 15:51:51 by jlecorne         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,10 +37,14 @@
 
 #include "Server.hpp"
 
-const int PORT = 8080;
-const int MAX_CLIENTS = 10;
 const std::string WEBSITE_PATH = "./docs/";
 const std::string CGI_PATH = "./cgi-bin/";
+const int MAX_CLIENTS = 20;
+
+// const int PORT = 8080;
+// const int MAX_CLIENTS = 10;
+// const std::string WEBSITE_PATH = "./docs/";
+// const std::string CGI_PATH = "./cgi-bin/";
 
 class Core
 {
@@ -55,6 +59,9 @@ public:
     Core(const Core &src);
     ~Core();
     Core &operator=(const Core &rhs);
+
+    int get_port(int index);
+    int get_psock(int client_sock);
 
     class Core_excep : public std::exception {
         public: virtual const char *what() const throw();
