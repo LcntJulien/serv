@@ -6,7 +6,7 @@
 /*   By: jlecorne <jlecorne@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/13 20:52:00 by jlecorne          #+#    #+#             */
-/*   Updated: 2024/04/19 15:51:51 by jlecorne         ###   ########.fr       */
+/*   Updated: 2024/04/22 18:50:24 by jlecorne         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,29 +41,45 @@ const std::string WEBSITE_PATH = "./docs/";
 const std::string CGI_PATH = "./cgi-bin/";
 const int MAX_CLIENTS = 20;
 
-// const int PORT = 8080;
-// const int MAX_CLIENTS = 10;
-// const std::string WEBSITE_PATH = "./docs/";
-// const std::string CGI_PATH = "./cgi-bin/";
-
 class Core
 {
 private:
-    std::vector<int>    _ports;
-    std::vector<int>    _sockets;
     std::map<int, int>  _psocket;
+    std::vector<int>    _sockets;
+    std::vector<int>    _ports;
     std::vector<Server> _clusters;
     int                 _max_clients;
+
+    Core(const Core &src);
+    Core &operator=(const Core &rhs);
 public:
     Core();
-    Core(const Core &src);
     ~Core();
-    Core &operator=(const Core &rhs);
 
-    int get_port(int index);
-    int get_psock(int client_sock);
+    size_t  get_ssize();
+    int     get_clients();
+    int     get_socket(int i);
+    int     get_psock(int socket);
 
-    class Core_excep : public std::exception {
+    void    close_sock();
+    void    bind_ports();
+    void    add_port(int port);
+    void    add_cluster(const Server &cluster);
+    void    set_psock(int socket, int port);
+
+    class CantFindPort : public std::exception {
+        public: virtual const char *what() const throw();
+    };
+
+    class CantCreateSocket : public std::exception {
+        public: virtual const char *what() const throw();
+    };
+
+    class CantBindSocket : public std::exception {
+        public: virtual const char *what() const throw();
+    };
+
+    class ListeningError : public std::exception {
         public: virtual const char *what() const throw();
     };
 };

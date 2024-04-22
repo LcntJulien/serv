@@ -1,86 +1,70 @@
-#include "include/Webserv.hpp"
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   .tmp.cpp                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jlecorne <jlecorne@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/04/12 16:37:10 by jlecorne          #+#    #+#             */
+/*   Updated: 2024/04/19 19:03:26 by jlecorne         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-std::string get_fileContent(const std::string& filename) {
-    std::ifstream in(filename, std::ios::in | std::ios::binary);
-    if (in) {
-        std::ostringstream content;
-        content << in.rdbuf();
-        in.close();
-        return content.str();
-    }
-    return "";
-}
-
-std::string get_contentType(const std::string& filename) {
-    if (filename.find(".html") != std::string::npos) {
-        return "text/html";
-    } else if (filename.find(".css") != std::string::npos) {
-        return "text/css";
-    } else if (filename.find(".js") != std::string::npos) {
-        return "application/javascript";
-    } else {
-        return "application/octet-stream"; // Default to binary data if content type is unknown
-    }
-}
-
-// Function to execute CGI script and capture its output
-std::string execute_cgi(const std::string& script_name) {
-    std::string command = CGI_PATH + script_name;
-    FILE* pipe = popen(command.c_str(), "r");
-    if (!pipe) {
-        return "Error executing CGI script";
-    }
-
-    char buffer[1024];
-    std::string result;
-    while (fgets(buffer, sizeof(buffer), pipe) != NULL) {
-        result += buffer;
-    }
-    pclose(pipe);
-
-    return result;
-}
-
-// Function to handle CGI requests
-std::string handle_cgi_request(const std::string& script_name) {
-    return execute_cgi(script_name);
-}
+#include "../include/Core.hpp"
+#include "../include/Server.hpp"
+#include "../include/Location.hpp"
 
 int webserv() {
-    // Create socket
-    int serv_socket = socket(AF_INET, SOCK_STREAM, 0);
-    if (serv_socket < 0) {
-        std::cerr << "Error creating socket\n";
-        return 1;
+    std::vector<int> PORTS;
+    PORTS.push_back(8000);
+    PORTS.push_back(8001);
+    PORTS.push_back(8002);
+    // Create socket for each port
+    std::vector<int> serv_sockets;
+    for (size_t i = 0; i < PORTS.size(); i++) {
+        int serv_socket = socket(AF_INET, SOCK_STREAM, 0);
+        if (serv_socket < 0) {
+            std::cerr << "Error creating socket\n";
+            return 1;
+        }
+
+        // Bind socket to port
+        sockaddr_in address;
+        address.sin_family = AF_INET;
+        address.sin_addr.s_addr = INADDR_ANY;
+        address.sin_port = htons(PORTS[i]);
+        if (bind(serv_socket, (sockaddr*)&address, sizeof(address)) < 0) {
+            std::cerr << "Error binding to port " << PORTS[i] << "\n";
+            return 1;
+        }
+
+        // Listen for connections
+        if (listen(serv_socket, 10) < 0) {
+            std::cerr << "Error listening on port " << PORTS[i] << "\n";
+            return 1;
+        }
+        std::cout << "\033[1m\033[90mServer listening on port \033[32m" << PORTS[i] << "\033[90m\033[0m" << std::endl << std::endl;
+
+        serv_sockets.push_back(serv_socket);
     }
 
-    // Bind socket to port
-    sockaddr_in address;
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(PORT);
-    if (bind(serv_socket, (sockaddr*)&address, sizeof(address)) < 0) {
-        std::cerr << "Error binding to port\n";
-        return 1;
+    printMsg("Server listening on ports", GREY, 0);
+    for (size_t i = 0; i < PORTS.size(); i++) {
+        std::cout << " ";
+        printMsg(PORTS[i], GREEN, 2);
+        if (i + 1 == PORTS.size())
+            std::cout << std::endl;
     }
 
-    // Listen for connections
-    if (listen(serv_socket, 10) < 0) {
-        std::cerr << "Error listening\n";
-        return 1;
-    }
-
-    printMsg("Server listening on port ", GREY, 0);
-    printMsg(PORT, GREEN, 2);
-    
     // Array to hold file descriptors for sockets
     pollfd fds[MAX_CLIENTS]; // Adjust the size as needed
 
-    // Initialize the first element with the server socket
-    fds[0].fd = serv_socket;
-    fds[0].events = POLLIN; // Listen for incoming data
-
-    int nfds = 1; // Number of file descriptors
+    // Initialize the elements with the server sockets
+    for (size_t i = 0; i < serv_sockets.size(); i++) {
+        fds[i].fd = serv_sockets[i];
+        fds[i].events = POLLIN; // Listen for incoming data
+    }
+    int nfds = serv_sockets.size(); // Number of file descriptors
 
     while (true) {
         // Wait for events on any of the sockets
@@ -91,27 +75,28 @@ int webserv() {
         }
 
         // Check for events on server socket
-        if (fds[0].revents & POLLIN) {
-            // Accept incoming connection
-            int client_socket = accept(serv_socket, nullptr, nullptr);
-            if (client_socket < 0) {
-                std::cerr << "Error accepting connection\n";
-                continue;
+        for (size_t i = 0; i < serv_sockets.size(); i++) {
+            if (fds[i].revents & POLLIN) {
+                // Accept incoming connection
+                int client_socket = accept(fds[i].fd, nullptr, nullptr);
+                if (client_socket < 0) {
+                    std::cerr << "Error accepting connection\n";
+                    continue;
+                }
+                printMsg("New client connected", GREEN, 1);
+                
+                // Add new client socket to fds array
+                fds[nfds].fd = client_socket;
+                fds[nfds].events = POLLIN; // Listen for incoming data
+                nfds++; // Increment the number of file descriptors
             }
-            printMsg("New client connected > ", GREEN, 0);
-            printMsg(nfds, GREY, 1);
-
-            // Add new client socket to fds array
-            fds[nfds].fd = client_socket;
-            fds[nfds].events = POLLIN; // Listen for incoming data
-            nfds++; // Increment the number of file descriptors
         }
 
         // Handle events on client sockets
-        for (int i = 1; i < nfds; i++) {
+        for (int i = serv_sockets.size(); i < nfds; i++) {
             if (fds[i].revents & POLLIN) { // Check for incoming data
                 char buffer[1024] = {0};
-                ssize_t bytes_received = recv(fds[i].fd, buffer, sizeof(buffer), 0);
+                size_t bytes_received = recv(fds[i].fd, buffer, sizeof(buffer), 0);
                 if (bytes_received <= 0) {
                     // Client disconnected or error occurred
                     printMsg("Client disconnected > ", RED, 0);
@@ -192,11 +177,11 @@ int webserv() {
                             resHeader << "\r\n";
                         } else {
                             resHeader << "HTTP/1.1 404 Not Found\r\n\r\n";
-                            resBody = get_fileContent("./website/status/404.html");
+                            resBody = get_fileContent("./docs/status/404.html");
                         }
                     } else {
                         resHeader << "HTTP/1.1 400 Bad Request\r\n\r\n";
-                        resBody = get_fileContent("./website/status/400.html");
+                        resBody = get_fileContent("./docs/status/400.html");
                     }
 
                     /*
@@ -220,7 +205,28 @@ int webserv() {
             }
         }
     }
-    // Close server socket
-    close(serv_socket);
+    // Close server sockets
+    for (size_t i = 0; i < serv_sockets.size(); i++) {
+        close(serv_sockets[i]);
+    }
+    return 0;
+}
+
+int main(int ac, char **av) {
+    (void)av;
+    if (ac /*== 2*/)
+    {
+        try {
+            webserv();
+        }
+        catch (std::exception &e) {
+            std::cerr << e.what() << std::endl;
+            return 1;
+        }
+    }
+    else {
+        std::cerr << GREY << "webserv: " << RED << "ERROR" << GREY << ": Bad argument" << std::endl;
+        std::cerr << GREY << "usage: ./webserv [configuration file]" << std::endl;
+    }
     return 0;
 }

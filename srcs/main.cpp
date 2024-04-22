@@ -6,7 +6,7 @@
 /*   By: jlecorne <jlecorne@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/12 16:37:10 by jlecorne          #+#    #+#             */
-/*   Updated: 2024/04/19 16:12:37 by jlecorne         ###   ########.fr       */
+/*   Updated: 2024/04/22 18:51:28 by jlecorne         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,65 +14,17 @@
 #include "../include/Server.hpp"
 #include "../include/Location.hpp"
 
-// const std::string SPATH = "./website/";
-// const std::string CGI_PATH = "./cgi-bin/";
-// const int MAX_CLIENTS = 20;
-// const std::vector<int> PORTS = {8000, 8001, 8002};
-
-int webserv() {
-    std::vector<int> PORTS;
-    PORTS.push_back(8000);
-    PORTS.push_back(8001);
-    PORTS.push_back(8002);
-    // Create socket for each port
-    std::vector<int> serv_sockets;
-    for (size_t i = 0; i < PORTS.size(); i++) {
-        int serv_socket = socket(AF_INET, SOCK_STREAM, 0);
-        if (serv_socket < 0) {
-            std::cerr << "Error creating socket\n";
-            return 1;
-        }
-
-        // Bind socket to port
-        sockaddr_in address;
-        address.sin_family = AF_INET;
-        address.sin_addr.s_addr = INADDR_ANY;
-        address.sin_port = htons(PORTS[i]);
-        if (bind(serv_socket, (sockaddr*)&address, sizeof(address)) < 0) {
-            std::cerr << "Error binding to port " << PORTS[i] << "\n";
-            return 1;
-        }
-
-        // Listen for connections
-        if (listen(serv_socket, 10) < 0) {
-            std::cerr << "Error listening on port " << PORTS[i] << "\n";
-            return 1;
-        }
-        std::cout << "\033[1m\033[90mServer listening on port \033[32m" << PORTS[i] << "\033[90m\033[0m" << std::endl << std::endl;
-
-        serv_sockets.push_back(serv_socket);
+int webserv(Core *serv) {
+    serv->bind_ports();
+    pollfd fds[serv->get_clients()];
+    
+    for (size_t i = 0; i < serv->get_ssize(); i++) {
+        fds[i].fd = serv->get_socket(i);
+        fds[i].events = POLLIN;
     }
-
-    printMsg("Server listening on ports", GREY, 0);
-    for (size_t i = 0; i < PORTS.size(); i++) {
-        std::cout << " ";
-        printMsg(PORTS[i], GREEN, 2);
-        if (i + 1 == PORTS.size())
-            std::cout << std::endl;
-    }
-
-    // Array to hold file descriptors for sockets
-    pollfd fds[MAX_CLIENTS]; // Adjust the size as needed
-
-    // Initialize the elements with the server sockets
-    for (size_t i = 0; i < serv_sockets.size(); i++) {
-        fds[i].fd = serv_sockets[i];
-        fds[i].events = POLLIN; // Listen for incoming data
-    }
-    int nfds = serv_sockets.size(); // Number of file descriptors
+    int nfds = serv->get_ssize();
 
     while (true) {
-        // Wait for events on any of the sockets
         int poll_count = poll(fds, nfds, -1);
         if (poll_count < 0) {
             std::cerr << "Poll error\n";
@@ -80,47 +32,27 @@ int webserv() {
         }
 
         // Check for events on server socket
-        for (size_t i = 0; i < serv_sockets.size(); i++) {
+        for (size_t i = 0; i < serv->get_ssize(); i++) {
             if (fds[i].revents & POLLIN) {
-                // Accept incoming connection
-                int client_socket = accept(fds[i].fd, nullptr, nullptr);
-                if (client_socket < 0) {
+                int csocket = accept(fds[i].fd, nullptr, nullptr);
+                if (csocket < 0) {
                     std::cerr << "Error accepting connection\n";
                     continue;
                 }
-                printMsg("New client connected", GREEN, 1);
-                
                 // Add new client socket to fds array
-                fds[nfds].fd = client_socket;
-                fds[nfds].events = POLLIN; // Listen for incoming data
-                nfds++; // Increment the number of file descriptors
+                fds[nfds].fd = csocket;
+                fds[nfds].events = POLLIN;
+                nfds++;
             }
         }
-        // if (fds[0].revents & POLLIN) {
-        //     // Accept incoming connection
-        //     int client_socket = accept(serv_socket, nullptr, nullptr);
-        //     if (client_socket < 0) {
-        //         std::cerr << "Error accepting connection\n";
-        //         continue;
-        //     }
-        //     printMsg("New client connected > ", GREEN, 0);
-        //     printMsg(nfds, GREY, 1);
-
-        //     // Add new client socket to fds array
-        //     fds[nfds].fd = client_socket;
-        //     fds[nfds].events = POLLIN; // Listen for incoming data
-        //     nfds++; // Increment the number of file descriptors
-        // }
 
         // Handle events on client sockets
-        for (int i = serv_sockets.size(); i < nfds; i++) {
+        for (int i = serv->get_ssize(); i < nfds; i++) {
             if (fds[i].revents & POLLIN) { // Check for incoming data
                 char buffer[1024] = {0};
                 size_t bytes_received = recv(fds[i].fd, buffer, sizeof(buffer), 0);
                 if (bytes_received <= 0) {
                     // Client disconnected or error occurred
-                    printMsg("Client disconnected > ", RED, 0);
-                    printMsg(i, GREY, 2);
                     close(fds[i].fd);
                     // Remove client socket from fds array
                     for (int j = i; j < nfds - 1; j++) {
@@ -128,15 +60,8 @@ int webserv() {
                     }
                     nfds--; // Decrement the number of file descriptors
                 } else {
-                    // Avoid favicon requests
                     std::string request(buffer);
-                    if (request.find("GET /favicon.ico") != std::string::npos) {
-                        close(fds[i].fd);
-                        continue;
-                    }
-
                     printMsg(request, BLUE, 1);
-
                     /*
                     - ext function to get method (needed below)
                     */
@@ -226,9 +151,7 @@ int webserv() {
         }
     }
     // Close server sockets
-    for (size_t i = 0; i < serv_sockets.size(); i++) {
-        close(serv_sockets[i]);
-    }
+    serv->close_sock();
     return 0;
 }
 
@@ -237,7 +160,11 @@ int main(int ac, char **av) {
     if (ac /*== 2*/)
     {
         try {
-            webserv();
+            Core *serv = new Core;
+            serv->add_port(8000);
+            serv->add_port(8001);
+            serv->add_port(8002);
+            webserv(serv);
         }
         catch (std::exception &e) {
             std::cerr << e.what() << std::endl;
